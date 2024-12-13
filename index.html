@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empréstimo de Livros</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        header {
+            background-color: #6200ea;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        main {
+            padding: 1rem;
+            max-width: 600px;
+            margin: auto;
+        }
+        form {
+            margin-bottom: 1.5rem;
+        }
+        input, button {
+            width: 100%;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        button {
+            background-color: #6200ea;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #3700b3;
+        }
+        .message {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background-color: #e3f2fd;
+            border-left: 4px solid #039be5;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Sistema de Empréstimos de Livros</h1>
+    </header>
+    <main>
+        <!-- Login -->
+        <section id="login-section">
+            <h2>Login de Admin</h2>
+            <form id="login-form">
+                <input type="text" id="usuario" placeholder="Usuário" required />
+                <input type="password" id="senha" placeholder="Senha" required />
+                <button type="submit">Entrar</button>
+            </form>
+            <div id="login-message" class="message" style="display: none;"></div>
+        </section>
+
+        <!-- Empréstimo -->
+        <section id="emprestimo-section" style="display: none;">
+            <h2>Emprestar Livro</h2>
+            <form id="emprestimo-form">
+                <input type="number" id="id-livro" placeholder="ID do Livro" required />
+                <input type="number" id="id-estudante" placeholder="ID do Estudante" required />
+                <button type="submit">Emprestar</button>
+            </form>
+            <div id="emprestimo-message" class="message" style="display: none;"></div>
+        </section>
+    </main>
+
+    <script>
+        const loginForm = document.getElementById('login-form');
+        const loginMessage = document.getElementById('login-message');
+        const emprestimoForm = document.getElementById('emprestimo-form');
+        const emprestimoMessage = document.getElementById('emprestimo-message');
+        const emprestimoSection = document.getElementById('emprestimo-section');
+        const loginSection = document.getElementById('login-section');
+
+        let token = '';
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const usuario = document.getElementById('usuario').value;
+            const senha = document.getElementById('senha').value;
+
+            try {
+                const response = await fetch('/login/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ usuario, senha })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    token = data.token_de_acesso;
+                    loginMessage.style.display = 'none';
+                    loginSection.style.display = 'none';
+                    emprestimoSection.style.display = 'block';
+                } else {
+                    loginMessage.textContent = 'Erro no login. Verifique as credenciais.';
+                    loginMessage.style.display = 'block';
+                }
+            } catch (error) {
+                loginMessage.textContent = 'Erro de conexão. Tente novamente.';
+                loginMessage.style.display = 'block';
+            }
+        });
+
+        emprestimoForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const idLivro = document.getElementById('id-livro').value;
+            const idEstudante = document.getElementById('id-estudante').value;
+
+            try {
+                const response = await fetch('/emprestar/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ id_livro: idLivro, id_estudante: idEstudante })
+                });
+
+                if (response.ok) {
+                    emprestimoMessage.textContent = 'Empréstimo realizado com sucesso!';
+                    emprestimoMessage.style.display = 'block';
+                } else {
+                    emprestimoMessage.textContent = 'Erro ao realizar empréstimo. Verifique os dados.';
+                    emprestimoMessage.style.display = 'block';
+                }
+            } catch (error) {
+                emprestimoMessage.textContent = 'Erro de conexão. Tente novamente.';
+                emprestimoMessage.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
